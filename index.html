@@ -91,6 +91,18 @@ body{
 }
 .broken.show{display:flex}
 .broken svg{width:42px;height:42px;fill:none;stroke:var(--ink-soft);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.loading{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;opacity:0;pointer-events:none;transition:opacity .2s ease;
+}
+.loading.show{opacity:1}
+.spinner{
+  width:58px;height:58px;border-radius:50%;background:var(--bg);box-shadow:var(--in);
+  display:flex;align-items:center;justify-content:center;
+}
+.spinner svg{width:28px;height:28px;fill:none;stroke:var(--ink-soft);stroke-width:2.6;stroke-linecap:round;animation:spin 1s linear infinite}
+.loading span{font-size:14px;letter-spacing:2px;color:var(--ink-soft)}
+@keyframes spin{to{transform:rotate(360deg)}}
 .controls{display:flex;align-items:center;justify-content:center;gap:20px;width:100%}
 .btn{
   flex:0 0 auto;width:64px;height:64px;border:0;border-radius:50%;padding:0;
@@ -163,6 +175,10 @@ body{
     <div class="broken" id="broken" aria-hidden="true">
       <svg viewBox="0 0 60 60"><rect x="8" y="12" width="44" height="36" rx="7"/><path d="M13 41l12-13 8 9 6-6 8 8"/><path d="M12 12l36 36"/></svg>
     </div>
+    <div class="loading" id="loading" role="status" aria-live="polite">
+      <div class="spinner"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 1-9 9"/></svg></div>
+      <span>加载中…</span>
+    </div>
     <div class="badge" id="badge" aria-hidden="true"><svg viewBox="0 0 60 60" id="badgeIcon"></svg></div>
   </div>
   <div class="toast" id="toast"><span id="toastText"></span></div>
@@ -181,11 +197,12 @@ body{
 <script>
 (function () {
   'use strict';
-  var DATA = [{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E9%9B%AA%E4%B8%AD%E5%A4%A7%E6%A5%BC.jpg","a":54,"f":"01.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E5%B9%BF%E5%9C%BA%E9%93%9C%E5%83%8F.jpg","a":54,"f":"02.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E7%A0%B4%E5%9C%9F%E5%AB%A9%E8%8A%BD.jpg","a":52,"f":"03.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E5%8F%A4%E4%BA%BA%E7%94%BB%E5%83%8F.jpg","a":52,"f":"04.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E9%9F%B3%E7%AE%B1%E7%89%B9%E5%86%99.jpg","a":52,"f":"05.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E6%B2%B3%E7%AB%A5%E5%8A%A8%E6%BC%AB.jpg","a":23,"f":"06.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E9%9C%8D%E9%87%91%E6%97%A7%E7%85%A7.jpg","a":21,"f":"07.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E8%8D%AF%E6%88%BF%E8%B4%A7%E6%9E%B6.jpg","a":2,"f":"08.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E7%99%BD%E8%89%B2%E7%B2%BE%E7%81%B5.jpg","a":35,"f":"09.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E7%99%BD%E8%90%9D%E5%8D%9C%E5%A0%86.jpg","a":35,"f":"10.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E7%AB%99%E7%AB%8B%E8%80%81%E9%BC%A0.jpg","a":30,"f":"11.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E8%9F%91%E8%9E%82%E6%8F%92%E7%94%BB.jpg","a":51,"f":"12.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E8%9B%8B%E5%A4%B4%E8%A5%BF%E8%A3%85.jpg","a":13,"f":"13.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E8%B1%A1%E6%A3%8B%E5%B8%85%E5%AD%97.jpg","a":13,"f":"14.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E7%A0%A7%E6%9D%BF%E8%83%A1%E8%90%9D%E5%8D%9C.jpg","a":44,"f":"15.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E9%BC%93%E8%85%AE%E7%94%B7%E5%AD%A9.jpg","a":49,"f":"16.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E9%BB%84%E8%89%B2%E7%B3%96%E6%9E%9C.jpg","a":4,"f":"17.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E7%81%AB%E5%B1%B1%E5%96%B7%E5%8F%91.jpg","a":56,"f":"18.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E9%B1%BC%E6%8E%92%E6%B1%89%E5%A0%A1.jpg","a":57,"f":"19.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E5%93%A5%E5%B8%83%E6%9E%97%E8%AE%BE%E5%AE%9A.jpg","a":0,"f":"20.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E8%9C%9C%E8%9C%82%E6%88%AA%E5%9B%BE.jpg","a":55,"f":"21.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E5%93%AA%E5%90%92%E5%8A%A8%E7%94%BB.jpg","a":21,"f":"22.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E7%99%BD%E8%89%B2%E7%AB%8B%E6%96%B9.jpg","a":0,"f":"23.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E5%83%8F%E7%B4%A0%E5%8F%B2%E8%92%82%E5%A4%AB.jpg","a":0,"f":"24.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E6%98%9F%E5%B7%B4%E5%85%8B%E9%A5%AE.jpg","a":3,"f":"25.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E6%B0%B4%E8%B1%9A%E6%AD%A3%E9%9D%A2.jpg","a":0,"f":"26.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E5%AD%A6%E8%80%85%E8%82%96%E5%83%8F.jpg","a":10,"f":"27.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E6%B8%85%E5%AE%AB%E5%B0%8F%E5%B8%9D.jpg","a":13,"f":"28.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E5%85%B3%E7%BE%BD%E7%94%BB%E5%83%8F.jpg","a":10,"f":"29.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E9%B2%81%E8%BF%85%E7%94%BB%E5%83%8F.jpg","a":30,"f":"30.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E9%B2%88%E9%B1%BC%E7%99%BD%E5%BA%95.png","a":58,"f":"31.png"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E6%B8%85%E4%BB%A3%E5%AE%98%E7%85%A7.png","a":59,"f":"32.png"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E5%B1%B1%E5%A7%86%E5%A4%A7%E5%8F%94.jpg","a":31,"f":"33.jpg"}];
+  var DATA = [{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E9%9B%AA%E4%B8%AD%E5%A4%A7%E6%A5%BC.jpg","a":54,"f":"img_56e84c8097f5.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E5%B9%BF%E5%9C%BA%E9%93%9C%E5%83%8F.jpg","a":54,"f":"img_28b7d06697c0.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E7%A0%B4%E5%9C%9F%E5%AB%A9%E8%8A%BD.jpg","a":52,"f":"img_bb428f3c266e.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E5%8F%A4%E4%BA%BA%E7%94%BB%E5%83%8F.jpg","a":52,"f":"img_59a0205dcd60.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E9%9F%B3%E7%AE%B1%E7%89%B9%E5%86%99.jpg","a":52,"f":"img_c4ce4e4c06a8.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E6%B2%B3%E7%AB%A5%E5%8A%A8%E6%BC%AB.jpg","a":23,"f":"img_12fade5803b5.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E9%9C%8D%E9%87%91%E6%97%A7%E7%85%A7.jpg","a":21,"f":"img_ef13910dd19c.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E8%8D%AF%E6%88%BF%E8%B4%A7%E6%9E%B6.jpg","a":2,"f":"img_2f01e9df4fb1.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E7%99%BD%E8%89%B2%E7%B2%BE%E7%81%B5.jpg","a":35,"f":"img_a5c5457c19ff.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E7%99%BD%E8%90%9D%E5%8D%9C%E5%A0%86.jpg","a":35,"f":"img_1a6fb612ce99.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E7%AB%99%E7%AB%8B%E8%80%81%E9%BC%A0.jpg","a":30,"f":"img_a39294c08c55.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E8%9F%91%E8%9E%82%E6%8F%92%E7%94%BB.jpg","a":51,"f":"img_22199af2142b.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E8%9B%8B%E5%A4%B4%E8%A5%BF%E8%A3%85.jpg","a":13,"f":"img_3f1fbd16d13c.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E8%B1%A1%E6%A3%8B%E5%B8%85%E5%AD%97.jpg","a":13,"f":"img_f66410a4f5b7.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E7%A0%A7%E6%9D%BF%E8%83%A1%E8%90%9D%E5%8D%9C.jpg","a":44,"f":"img_a1c51c81fcbe.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E9%BC%93%E8%85%AE%E7%94%B7%E5%AD%A9.jpg","a":49,"f":"img_ac7c47a86453.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E9%BB%84%E8%89%B2%E7%B3%96%E6%9E%9C.jpg","a":4,"f":"img_5737a890db84.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E7%81%AB%E5%B1%B1%E5%96%B7%E5%8F%91.jpg","a":56,"f":"img_237b7206caf8.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E9%B1%BC%E6%8E%92%E6%B1%89%E5%A0%A1.jpg","a":57,"f":"img_b0e68fc0a986.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E5%93%A5%E5%B8%83%E6%9E%97%E8%AE%BE%E5%AE%9A.jpg","a":0,"f":"img_2003013f2c00.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E8%9C%9C%E8%9C%82%E6%88%AA%E5%9B%BE.jpg","a":55,"f":"img_27ec00c5fe4e.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E5%93%AA%E5%90%92%E5%8A%A8%E7%94%BB.jpg","a":21,"f":"img_bcac9c53f80d.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E7%99%BD%E8%89%B2%E7%AB%8B%E6%96%B9.jpg","a":3,"f":"img_d9355af80384.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E5%83%8F%E7%B4%A0%E5%8F%B2%E8%92%82%E5%A4%AB.jpg","a":3,"f":"img_c13035ca77af.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E6%98%9F%E5%B7%B4%E5%85%8B%E9%A5%AE.jpg","a":3,"f":"img_cb234aadc87a.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E6%B0%B4%E8%B1%9A%E6%AD%A3%E9%9D%A2.jpg","a":18,"f":"img_03cabee200a6.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E5%AD%A6%E8%80%85%E8%82%96%E5%83%8F.jpg","a":10,"f":"img_50a0e8950b12.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E6%B8%85%E5%AE%AB%E5%B0%8F%E5%B8%9D.jpg","a":13,"f":"img_c5ed40f52e5f.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E5%85%B3%E7%BE%BD%E7%94%BB%E5%83%8F.jpg","a":10,"f":"img_6704ce3be280.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E9%B2%81%E8%BF%85%E7%94%BB%E5%83%8F.jpg","a":30,"f":"img_45cad226da57.jpg"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E9%B2%88%E9%B1%BC%E7%99%BD%E5%BA%95.png","a":58,"f":"img_a622af5c1fa2.png"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E6%B8%85%E4%BB%A3%E5%AE%98%E7%85%A7.png","a":59,"f":"img_6cabe6057e9e.png"},{"u":"https://upload-api.smaiclub.top/91d2b3aa-1da3-48f5-aadb-d1be691b9567/tongxue/%E5%B1%B1%E5%A7%86%E5%A4%A7%E5%8F%94.jpg","a":31,"f":"img_ee11ed1c471e.jpg"}];
   var TOTAL = 33;
   var card = document.getElementById('card');
   var photo = document.getElementById('photo');
   var broken = document.getElementById('broken');
+  var loading = document.getElementById('loading');
   var badge = document.getElementById('badge');
   var badgeIcon = document.getElementById('badgeIcon');
   var toast = document.getElementById('toast');
@@ -200,8 +217,9 @@ body{
   var RIGHT_MSG = '67';
   var WRONG_MSGS = ['老牧师东西', '我真的特别爱你，为什么你会落泪', '再错让讲解石配了你', '欧宝万岁'];
   var AUTO_NEXT_MS = 1700;
-  var deck = [], lastIndex = -1, lastWrong = -1, current = -1, solved = false;
-  var badgeTimer = null, fxTimer = null, switchTimer = null, fallbackUsed = false;
+  var deck = [], lastIndex = -1, lastWrong = -1, current = -1, upcoming = -1, solved = false;
+  var badgeTimer = null, fxTimer = null, switchTimer = null, loadingTimer = null, fallbackUsed = false;
+  var resolved = {}, preloads = {}, loadToken = 0;
 
   function shuffled() {
     var d = DATA.map(function (_, i) { return i; });
@@ -272,37 +290,78 @@ body{
     btn.classList.add('is-pressed');
     setTimeout(function () { btn.classList.remove('is-pressed'); }, 170);
   }
-  function showNext() {
-    if (!DATA.length) return;
-    clearTimeout(switchTimer);
-    clearBadge();
-    clearFx();
-    clearToast();
-    current = nextIndex();
-    lastIndex = current;
-    var item = DATA[current];
-    solved = false;
+  function armLoading() {
+    clearTimeout(loadingTimer);
+    loadingTimer = setTimeout(function () { loading.classList.add('show'); }, 120);
+  }
+  function clearLoading() {
+    clearTimeout(loadingTimer);
+    loading.classList.remove('show');
+  }
+  function preload(i) {
+    if (i < 0 || i >= DATA.length || preloads[i]) return;
+    var item = DATA[i];
+    var local = item.f ? 'images/' + item.f : null;
+    var im = new Image();
+    var triedFallback = false;
+    preloads[i] = im;
+    im.onload = function () { resolved[i] = im.src; };
+    im.onerror = function () {
+      if (!triedFallback && local && item.u) {
+        triedFallback = true;
+        im.src = item.u;
+      } else {
+        resolved[i] = null;
+      }
+    };
+    im.src = local || item.u;
+  }
+  function setPhoto(idx) {
+    var item = DATA[idx];
+    var local = item.f ? 'images/' + item.f : null;
+    var token = ++loadToken;
     fallbackUsed = false;
-    answer.value = '';
-    answer.classList.remove('ok', 'no', 'shake');
     broken.classList.remove('show');
     photo.style.visibility = 'visible';
     photo.classList.remove('ready');
-
-    var local = item.f ? 'images/' + item.f : null;
-    photo.onload = function () { photo.classList.add('ready'); };
+    armLoading();
+    photo.onload = function () {
+      if (token !== loadToken) return;
+      clearLoading();
+      photo.classList.add('ready');
+    };
     photo.onerror = function () {
+      if (token !== loadToken) return;
       if (!fallbackUsed && local && item.u) {
         fallbackUsed = true;
         photo.src = item.u;
       } else {
+        clearLoading();
         photo.classList.remove('ready');
         photo.style.visibility = 'hidden';
         broken.classList.add('show');
         live.textContent = '图片加载失败';
       }
     };
-    photo.src = local || item.u;
+    var src = resolved[idx] || (local || item.u);
+    if (!local || src === item.u) { fallbackUsed = true; }
+    photo.src = src;
+  }
+  function showNext() {
+    if (!DATA.length) return;
+    clearTimeout(switchTimer);
+    clearBadge();
+    clearFx();
+    clearToast();
+    current = (upcoming >= 0) ? upcoming : nextIndex();
+    lastIndex = current;
+    upcoming = nextIndex();
+    var nextToPreload = upcoming;
+    solved = false;
+    answer.value = '';
+    answer.classList.remove('ok', 'no', 'shake');
+    setPhoto(current);
+    setTimeout(function () { preload(nextToPreload); }, 0);
     if (window.matchMedia && window.matchMedia('(pointer: fine)').matches) {
       answer.focus();
     }
